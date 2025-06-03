@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-NightyScript extends Nighty (a Discord selfbot) with custom Python scripts. Scripts define commands and event handlers. Nighty manages the Discord connection; scripts focus purely on functionality.
+NightyScript extends Nighty (a Discord selfbot) with custom Python scripts. Scripts define commands and event handlers. Nighty manages the Discord connection; scripts focus purely on functionality. It is built on a modified version of the discord.py-self library.
 
 **Do not** use standard `discord.py` libraries directly, except as documented.
 
