@@ -394,6 +394,8 @@ await ctx.send(str(emoji))
 
 `get_emoji` returns `None` when the emoji isn't cached. After fetching once, the emoji remains cached for subsequent calls.
 
+
+
 ### 4.4 Event Listeners (@bot.listen)
 
 Handle Discord events using the `@bot.listen` decorator:
