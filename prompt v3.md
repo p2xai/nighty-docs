@@ -366,37 +366,6 @@ If no subcommand is matched, performs the default action (e.g., fetching data fo
 -   **Error Handling**: Provide clear messages for invalid subcommands or missing arguments.
 -   **Documentation**: Update the main script docstring and the command's `usage`/`description` to reflect the subcommand structure.
 
-#### 4.3.2 Sending Stickers
-
-Discord allows bots to send both built-in and custom stickers. Use the `stickers` parameter of `ctx.send` and retrieve the sticker from the cache before falling back to an HTTP fetch. This avoids unnecessary network calls and speeds up repeat usage.
-
-```python
-STICKER_ID = 749054660769218631  # example ID for the "wave" sticker
-sticker = bot.get_sticker(STICKER_ID)
-if not sticker:
-    sticker = await bot.fetch_sticker(STICKER_ID)
-await ctx.send(stickers=[sticker])
-```
-
-`bot.get_sticker` returns `None` if the sticker is not cached. For custom stickers—those uploaded to a guild you have access to—you may need to fetch them the first time with `fetch_sticker`. Once fetched, they remain in the cache for subsequent calls to `get_sticker`.
-
-#### 4.3.3 Sending Emojis
-
-Custom guild emojis work similarly to stickers. Retrieve the emoji from the cache using
-`bot.get_emoji`. If the emoji isn’t cached, send the raw `<:emoji:ID>` string instead.
-
-```python
-EMOJI_ID = 123456789012345678  # example custom emoji
-emoji = bot.get_emoji(EMOJI_ID)
-if emoji:
-    await ctx.send(str(emoji))
-else:
-    await ctx.send(f"<:emoji:{EMOJI_ID}>")
-```
-
-`get_emoji` returns `None` when the emoji isn’t cached or accessible. If the bot lacks access to the emoji, the raw string will not render properly.
-
-
 
 ### 4.4 Event Listeners (@bot.listen)
 
@@ -618,6 +587,38 @@ finally:
     # Always restore the original private setting (even if it was None)
     updateConfigData("private", current_private)
 ```
+
+#### 4.6.4 Sending Stickers
+
+Discord allows bots to send both built-in and custom stickers. Use the `stickers` parameter of `ctx.send` and retrieve the sticker from the cache before falling back to an HTTP fetch. This avoids unnecessary network calls and speeds up repeat usage.
+
+```python
+STICKER_ID = 749054660769218631  # example ID for the "wave" sticker
+sticker = bot.get_sticker(STICKER_ID)
+if not sticker:
+    sticker = await bot.fetch_sticker(STICKER_ID)
+await ctx.send(stickers=[sticker])
+```
+
+`bot.get_sticker` returns `None` if the sticker is not cached. For custom stickers—those uploaded to a guild you have access to—you may need to fetch them the first time with `fetch_sticker`. Once fetched, they remain in the cache for subsequent calls to `get_sticker`.
+
+#### 4.6.5 Sending Emojis
+
+Custom guild emojis work similarly to stickers. Retrieve the emoji from the cache using
+`bot.get_emoji`. If the emoji isn’t cached, send the raw `<:emoji:ID>` string instead.
+
+```python
+EMOJI_ID = 123456789012345678  # example custom emoji
+emoji = bot.get_emoji(EMOJI_ID)
+if emoji:
+    await ctx.send(str(emoji))
+else:
+    await ctx.send(f"<:emoji:{EMOJI_ID}>")
+```
+
+`get_emoji` returns `None` when the emoji isn’t cached or accessible. If the bot lacks access
+to the emoji, the raw string will not render properly.
+
 
 ### 4.7 Webhook Integration
 
