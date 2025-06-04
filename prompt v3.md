@@ -394,8 +394,7 @@ else:
     await ctx.send(f"<:emoji:{EMOJI_ID}>")
 ```
 
-`get_emoji` returns `None` when the emoji isn’t cached or accessible. If the bot lacks access
-to the emoji, the raw string will not render properly.
+`get_emoji` returns `None` when the emoji isn’t cached or accessible. If the bot lacks access to the emoji, the raw string will not render properly.
 
 
 
