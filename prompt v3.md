@@ -1,4 +1,4 @@
-# NightyScript Documentation v4.4 (Public)
+# NightyScript Documentation v4.6 (Public)
 
 **Created by:** thedorekaczynski
 
@@ -365,8 +365,6 @@ If no subcommand is matched, performs the default action (e.g., fetching data fo
 -   **Consistent Parsing**: Handle arguments (`subargs`) consistently across subcommands.
 -   **Error Handling**: Provide clear messages for invalid subcommands or missing arguments.
 -   **Documentation**: Update the main script docstring and the command's `usage`/`description` to reflect the subcommand structure.
-
-
 
 
 ### 4.4 Event Listeners (@bot.listen)
