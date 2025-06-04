@@ -1,4 +1,4 @@
-# NightyScript Documentation v4.4 (Public)
+# NightyScript Documentation v4.6 (Public)
 
 **Created by:** thedorekaczynski
 
