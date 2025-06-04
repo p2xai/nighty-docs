@@ -382,17 +382,19 @@ await ctx.send(stickers=[sticker])
 
 #### 4.3.3 Sending Emojis
 
-Custom guild emojis work similarly to stickers. Retrieve the emoji from the cache using `bot.get_emoji` and fall back to `bot.fetch_emoji` when necessary. Send the emoji by converting the object to a string.
+Custom guild emojis work similarly to stickers. Retrieve the emoji from the cache using
+`bot.get_emoji`. If the emoji isn’t cached, send the raw `<:emoji:ID>` string instead.
 
 ```python
 EMOJI_ID = 123456789012345678  # example custom emoji
 emoji = bot.get_emoji(EMOJI_ID)
-if not emoji:
-    emoji = await bot.fetch_emoji(EMOJI_ID)
-await ctx.send(str(emoji))
+if emoji:
+    await ctx.send(str(emoji))
+else:
+    await ctx.send(f"<:emoji:{EMOJI_ID}>")
 ```
 
-`get_emoji` returns `None` when the emoji isn't cached. After fetching once, the emoji remains cached for subsequent calls.
+`get_emoji` returns `None` when the emoji isn’t cached or accessible. If the bot lacks access to the emoji, the raw string will not render properly.
 
 
 
