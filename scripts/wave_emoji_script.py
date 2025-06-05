@@ -30,8 +30,8 @@ def script_function():
         await ctx.message.delete()
         try:
             emoji = bot.get_emoji(EMOJI_ID)
-            if not emoji:
-                emoji = await bot.fetch_emoji(EMOJI_ID)
+            if not emoji and ctx.guild:
+                emoji = await ctx.guild.fetch_emoji(EMOJI_ID)
             await ctx.send(str(emoji))
         except Exception as e:
             await ctx.send(f"Failed to send emoji: {e}")
@@ -46,8 +46,8 @@ def script_function():
             return
         try:
             emoji = bot.get_emoji(eid)
-            if not emoji:
-                emoji = await bot.fetch_emoji(eid)
+            if not emoji and ctx.guild:
+                emoji = await ctx.guild.fetch_emoji(eid)
             await ctx.send(str(emoji))
         except Exception as e:
             await ctx.send(f"Failed to send emoji: {e}")
