@@ -619,6 +619,21 @@ else:
 `get_emoji` returns `None` when the emoji isn’t cached or accessible. If the bot lacks access
 to the emoji, the raw string will not render properly.
 
+#### 4.6.6 Silent Messages
+
+Use the `silent=True` parameter with `ctx.send` for quick follow‑up or status
+updates that do not need to ping or notify other users. This is especially
+helpful in direct messages where every notification creates a ping. A "nothing
+burger" confirmation (e.g., "Note added.") can be sent silently so it appears in
+the chat history without generating a new notification.
+
+```python
+msg = await ctx.send("Processing...", silent=True)  # no ping for temporary status
+# ...do work...
+await msg.delete()
+```
+
+
 
 ### 4.7 Webhook Integration
 
