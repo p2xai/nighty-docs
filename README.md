@@ -84,7 +84,7 @@ script_function()  # IMPORTANT: Call to initialize
 
 **description**: Brief explanation (string).
 
-**usage**: Command syntax. `<p>` is the user's configured prefix. `[]` denotes optional arguments, `--` indicates flags (string).
+**usage**: Command syntax. `<p>` is the user's configured prefix. `[]` denotes optional arguments, `-` indicates flags (string).
 
 The decorated function (`script_function`) is the script's entry point. It's called on script load.
 
@@ -111,7 +111,7 @@ def script_function():
 
     EXAMPLES:
     <p>command1 arg1 arg2 - Example usage of command1
-    <p>command2 --flag     - Example usage of command2 with flags
+    <p>command2 -flag     - Example usage of command2 with flags
 
     NOTES:
     - Important note about functionality
@@ -233,7 +233,7 @@ Define commands using the `@bot.command` decorator:
 @bot.command(
     name="command",
     aliases=["c", "cmd"], # Optional list of aliases
-    usage="<arg1> [--flag]",
+    usage="<arg1> [-flag]",
     description="Desc"
 )
 async def command_handler(ctx, *, args: str):
@@ -242,7 +242,7 @@ async def command_handler(ctx, *, args: str):
     # Argument parsing example:
     parts = args.split()
     arg1 = parts[0] if parts else ""
-    flag_present = "--flag" in parts
+    flag_present = "-flag" in parts
 
     if flag_present:
         # ... process flag ...
@@ -284,7 +284,7 @@ For scripts with multiple related commands, consider consolidating them under a 
 ```python
 @bot.command(
     name="maincommand",
-    usage="<subcommand> [args] OR <default_action_arg> [--flags]",
+    usage="<subcommand> [args] OR <default_action_arg> [-flags]",
     description="Main command with subcommands for various actions."
 )
 async def main_command(ctx, *, args: str):
