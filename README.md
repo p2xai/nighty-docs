@@ -6,6 +6,15 @@
 
 ---
 
+## Table of Contents
+
+- [1. Overview](#1-overview)
+- [2. Script Structure](#2-script-structure)
+- [3. Command Prefix](#3-command-prefix)
+- [4. Core Functions](#4-core-functions)
+- [5. Asynchronous Operations](#5-asynchronous-operations)
+- [6. Common Script Patterns](#6-common-script-patterns)
+
 ## 1. Overview
 
 NightyScript extends Nighty (a Discord selfbot) with custom Python scripts. Scripts define commands and event handlers. Nighty manages the Discord connection; scripts focus purely on functionality. It is built on a modified version of the discord.py-self library.
@@ -29,7 +38,7 @@ import matplotlib  # or any matplotlib-related imports
 
 You may use objects like `discord.File` without importing them — NightyScript makes them available via its built-in API.
 
-### 1.2 Guidelines 
+### 1.2 Guidelines
 
 * Only use standard Python imports and NightyScript-provided functions.
 * External Python packages (e.g. `pydub`, `numpy`, `matplotlib`) are not allowed, unless they are non-Python tools like Docker.
@@ -564,7 +573,7 @@ NightyScript provides several ways to send messages:
 
 #### 4.6.3 Disabling Private Mode for Embeds
 
-Nighty's "private mode" can block outgoing messages like embeds — especially when the script pulls from external sources.  
+Nighty's "private mode" can block outgoing messages like embeds — especially when the script pulls from external sources.
 To ensure your embed sends successfully, **temporarily disable private mode** during the send.
 
 ```python
