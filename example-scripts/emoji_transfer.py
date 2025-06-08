@@ -15,7 +15,7 @@ def emoji_transfer():
     <p>transferemojis <source_id> <target_id> - Copy all custom emojis from the source server to the target.
 
     NOTES:
-    - The bot must be in both servers with Manage Emojis & Stickers permission.
+    - The bot must be in both servers
     - Adds a short delay between uploads to avoid hitting rate limits.
     - Progress is logged to the console.
     """
