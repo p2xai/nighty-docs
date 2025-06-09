@@ -1,5 +1,5 @@
 @nightyScript(
-    name="Server Analytics v2.0",
+    name="Server Analytics",
     author="thedorekaczynski",
     description="Discord server member tracking and analytics system with growth trends",
     usage="""<p>analytics snapshot - Take a server snapshot
@@ -58,26 +58,26 @@ def server_analytics():
     
     EXAMPLE OUTPUTS:
     Snapshot: 
-    📸 New Snapshot
+     New Snapshot
     Server: Your Server
     Members: 3,495
     Channels: 96
     Time: 12:00:00 UTC
     
     Report Sections:
-    - 👥 Member Statistics (total, bots, humans)
-    - 📝 Channel Information (text, voice, categories)
-    - 🎭 Role Count
-    - 📈 Growth Analysis
+    -  Member Statistics (total, bots, humans)
+    -  Channel Information (text, voice, categories)
+    -  Role Count
+    -  Growth Analysis
     
     Members Graph Example:
-    📊 Member Count History - Server Name 👥
+     Member Count History - Server Name 
 
     Apr 05, 06:47 PM EST
-    Members: 3,495 (+5) 📈
+    Members: 3,495 (+5) 
 
     Apr 05, 05:30 PM EST
-    Members: 3,490 (+2) ⬆️
+    Members: 3,490 (+2) 
     
     DATA STORAGE:
     - Base Directory: /json/server_member_tracking/<server_id>/
@@ -104,9 +104,9 @@ def server_analytics():
     import math
 
     # Constants
-    BASE_DIR = Path(getScriptsPath()) / "json" / "server_member_tracking"
+    DEFAULT_AUTO_SNAPSHOT_INTERVAL_HOURS = 20
     DATA_RETENTION_DAYS = 90
-    VERSION = "2.0"
+    
     AUTO_SNAPSHOT_CONFIG_KEY = "server_analytics_auto_snapshot"
     LAST_AUTO_SNAPSHOT_KEY = "server_analytics_last_auto"
     
@@ -190,7 +190,8 @@ def server_analytics():
                 "last_auto_snapshot": None,
                 "first_snapshot_date": None,
                 "chart_style": "emoji",  # Options: emoji, text
-                "snapshot_retention_days": DATA_RETENTION_DAYS
+                "snapshot_retention_days": DATA_RETENTION_DAYS,
+                "auto_snapshot_interval_hours": DEFAULT_AUTO_SNAPSHOT_INTERVAL_HOURS,
             }
             save_data(files['config'], default_config)
             return default_config
@@ -211,21 +212,21 @@ def server_analytics():
         return config.get("auto_snapshot", False)
         
     def should_take_auto_snapshot(guild_id):
-        """
-        Determine if an automatic snapshot should be taken based on time
-        since the last snapshot (should be at least 20 hours apart)
-        """
+        """Return True if enough time has passed for an automatic snapshot."""
         config = load_server_config(guild_id)
         last_snapshot = config.get("last_auto_snapshot")
-        
+        interval = config.get(
+            "auto_snapshot_interval_hours",
+            DEFAULT_AUTO_SNAPSHOT_INTERVAL_HOURS,
+        )
+
         if not last_snapshot:
             return True
-            
+
         last_time = datetime.fromisoformat(last_snapshot)
         now = datetime.utcnow()
-        
-        # Check if at least 20 hours have passed
-        return (now - last_time).total_seconds() >= 20 * 3600
+
+        return (now - last_time).total_seconds() >= interval * 3600
 
     # Initialize data structures if they don't exist
     def initialize_data(guild_id):
@@ -435,7 +436,7 @@ def server_analytics():
         
         if cmd == "snapshot":
             snapshot = await take_snapshot(ctx.guild)
-            await ctx.send(f"""📸 **New Snapshot**
+            await ctx.send(f""" **New Snapshot**
             
 **Server**: {ctx.guild.name}
 **Members**: {snapshot["member_count"]:,}
@@ -447,7 +448,7 @@ def server_analytics():
             
         elif cmd == "clear":
             initialize_data(ctx.guild.id)
-            await ctx.send(f"🗑️ Analytics data cleared for **{ctx.guild.name}**.")
+            await ctx.send(f" Analytics data cleared for **{ctx.guild.name}**.")
             
         elif cmd == "status":
             await show_status(ctx)
@@ -467,26 +468,58 @@ def server_analytics():
             
         elif cmd == "export":
             await export_data(ctx)
-            
+
         elif cmd == "auto":
             if subcmd in ["on", "true", "yes", "enable", "1"]:
                 update_server_config(ctx.guild.id, "auto_snapshot", True)
-                await ctx.send("✅ Automatic daily snapshots **enabled**")
+                await ctx.send(" Automatic daily snapshots **enabled**")
             elif subcmd in ["off", "false", "no", "disable", "0"]:
                 update_server_config(ctx.guild.id, "auto_snapshot", False)
-                await ctx.send("❌ Automatic daily snapshots **disabled**")
+                await ctx.send(" Automatic daily snapshots **disabled**")
             else:
                 is_enabled = is_auto_snapshot_enabled(ctx.guild.id)
                 status = "**enabled**" if is_enabled else "**disabled**"
-                await ctx.send(f"""📊 **Auto-Snapshot Status**
+                await ctx.send(f""" **Auto-Snapshot Status**
                 
 Automatic daily snapshots are currently {status}.
 
 Use `<p>analytics auto on` to enable
 Use `<p>analytics auto off` to disable""")
+
+        elif cmd == "retention":
+            if subcmd.isdigit():
+                days = int(subcmd)
+                update_server_config(ctx.guild.id, "snapshot_retention_days", days)
+                await ctx.send(f"Data retention set to {days} days")
+            else:
+                current = load_server_config(ctx.guild.id).get(
+                    "snapshot_retention_days", DATA_RETENTION_DAYS
+                )
+                await ctx.send(f"Data retention is {current} days")
+
+        elif cmd == "interval":
+            if subcmd:
+                try:
+                    hours = float(subcmd)
+                    update_server_config(
+                        ctx.guild.id, "auto_snapshot_interval_hours", hours
+                    )
+                    await ctx.send(
+                        f"Automatic snapshot interval set to {hours} hours"
+                    )
+                except ValueError:
+                    await ctx.send("Invalid interval. Provide number of hours.")
+            else:
+                current = load_server_config(ctx.guild.id).get(
+                    "auto_snapshot_interval_hours",
+                    DEFAULT_AUTO_SNAPSHOT_INTERVAL_HOURS,
+                )
+                await ctx.send(
+                    f"Automatic snapshot interval is {current} hours"
+                )
             
         else:
-            await ctx.send("""📊 **Server Analytics Commands**
+            await ctx.send(""" **Server Analytics Commands**
 
 • `<p>analytics snapshot` - Take a snapshot
 • `<p>analytics report` - Generate detailed report
@@ -497,6 +530,8 @@ Use `<p>analytics auto off` to disable""")
 • `<p>analytics compare [days]` - Compare with previous period
 • `<p>analytics export` - Export data to text file
 • `<p>analytics auto [on/off]` - Manage automatic snapshots
+• `<p>analytics retention [days]` - Set data retention period
+• `<p>analytics interval [hours]` - Set auto snapshot interval
 • `<p>a <subcommand>` - Shorthand for commands
 • `<p>a ss` - Quick snapshot
 • `<p>a timezone <zone>` - Set timezone""")
@@ -519,7 +554,7 @@ Use `<p>analytics auto off` to disable""")
         # Handle the "ss" shorthand for snapshot
         if cmd == "ss":
             snapshot = await take_snapshot(ctx.guild)
-            await ctx.send(f"""📸 **New Snapshot**
+            await ctx.send(f""" **New Snapshot**
             
 **Server**: {ctx.guild.name}
 **Members**: {snapshot["member_count"]:,}
@@ -539,11 +574,11 @@ Use `<p>analytics auto off` to disable""")
             # Validate timezone
             if timezone in TIMEZONE_OFFSETS:
                 updateConfigData(TIMEZONE_CONFIG_KEY, timezone)
-                await ctx.send(f"✅ Timezone set to **{timezone}**")
+                await ctx.send(f" Timezone set to **{timezone}**")
             else:
                 # Show available timezones
                 timezone_list = ", ".join(sorted(TIMEZONE_OFFSETS.keys()))
-                await ctx.send(f"""❌ Invalid timezone: **{timezone}**
+                await ctx.send(f""" Invalid timezone: **{timezone}**
 
 Available timezones:
 {timezone_list}
@@ -570,7 +605,7 @@ Usage: `<p>a timezone <zone>`""")
                 await forwardEmbedMethod(
                     channel_id=ctx.channel.id,
                     content="No analytics data available yet for this server.",
-                    title=f"📊 Analytics Status - {ctx.guild.name}",
+                    title=f" Analytics Status - {ctx.guild.name}",
                     image=None
                 )
             else:
@@ -607,7 +642,7 @@ Usage: `<p>a timezone <zone>`""")
                 await forwardEmbedMethod(
                     channel_id=ctx.channel.id,
                     content=status_content,
-                    title=f"📊 Analytics Status - {ctx.guild.name}",
+                    title=f" Analytics Status - {ctx.guild.name}",
                     image=None
                 )
         finally:
@@ -631,7 +666,7 @@ Usage: `<p>a timezone <zone>`""")
                 await forwardEmbedMethod(
                     channel_id=ctx.channel.id,
                     content="No analytics data available yet for this server.",
-                    title="📊 Server Analytics Report",
+                    title=" Server Analytics Report",
                     image=None
                 )
             finally:
@@ -653,15 +688,15 @@ Usage: `<p>a timezone <zone>`""")
         # Get trend analysis
         trend_data = analyze_growth_trend(snapshots)
         trend_emoji = {
-            "rapid_growth": "🚀",
-            "steady_growth": "📈",
-            "slow_growth": "⬆️",
-            "stable": "➡️",
-            "slow_decline": "⬇️",
-            "steady_decline": "📉",
-            "rapid_decline": "📉📉",
-            "insufficient_data": "❓"
-        }.get(trend_data["trend"], "❓")
+            "rapid_growth": "",
+            "steady_growth": "",
+            "slow_growth": "",
+            "stable": "",
+            "slow_decline": "",
+            "steady_decline": "",
+            "rapid_decline": "",
+            "insufficient_data": ""
+        }.get(trend_data["trend"], "")
         
         # Format growth rate for display
         daily_change = trend_data["growth_rate_daily"]
@@ -692,25 +727,25 @@ Usage: `<p>a timezone <zone>`""")
         
         try:
             # Generate report
-            report = f"""## 📊 Server Overview
+            report = f"""##  Server Overview
             
-**👥 Member Statistics**
+** Member Statistics**
 • Total Members: **{current_members:,}**
 • Peak Members: **{peak_members:,}**
 • Members from Peak: **{members_from_peak:+,}** members
 • Bots: **{latest.get("bots", 0):,}**
 • Human Users: **{latest["member_count"] - latest.get("bots", 0):,}**
 
-**📝 Channel Information**
+** Channel Information**
 • Total Channels: **{latest["channel_count"]:,}**
 • Text Channels: **{latest.get("text_channels", 0):,}**
 • Voice Channels: **{latest.get("voice_channels", 0):,}**
 • Categories: **{latest.get("categories", 0):,}**
 
-**🎭 Role Count**
+** Role Count**
 • Total Roles: **{latest["role_count"]:,}**
 
-**📈 Growth Analysis**
+** Growth Analysis**
 • Current Trend: **{trend_emoji} {trend_data["trend"].replace("_", " ").title()}**
 • Daily Change: **{daily_growth_display}** members/day
 • Member Growth: **{growth:+,}** members total
@@ -719,20 +754,20 @@ Usage: `<p>a timezone <zone>`""")
 • Est. Days to Milestone: **{days_to_milestone}** days
 
 *Last Updated: {format_time_in_timezone(datetime.fromisoformat(latest["timestamp"]), "%Y-%m-%d %H:%M")}*
-*Server Analytics v{VERSION}*
+Server Analytics
 """
             
             # Send the embed
             await forwardEmbedMethod(
                 channel_id=ctx.channel.id,
                 content=report,
-                title=f"📊 Server Analytics Report - {ctx.guild.name}",
+                title=f" Server Analytics Report - {ctx.guild.name}",
                 image=None
             )
                 
         except Exception as e:
             print(f"Error generating report: {str(e)}", type_="ERROR")
-            await ctx.send(f"❌ Error generating analytics report for {ctx.guild.name}. Please try again later.")
+            await ctx.send(f" Error generating analytics report for {ctx.guild.name}. Please try again later.")
         finally:
             # Always restore private setting
             updateConfigData("private", current_private)
@@ -752,7 +787,7 @@ Usage: `<p>a timezone <zone>`""")
                 await forwardEmbedMethod(
                     channel_id=ctx.channel.id,
                     content="Not enough data for trend analysis. Please take at least 2 snapshots.",
-                    title=f"📈 Growth Trend Analysis - {ctx.guild.name}",
+                    title=f" Growth Trend Analysis - {ctx.guild.name}",
                     image=None
                 )
                 return
@@ -764,35 +799,35 @@ Usage: `<p>a timezone <zone>`""")
             
             # Get emoji for trends
             trend_emoji = {
-                "rapid_growth": "🚀",
-                "steady_growth": "📈",
-                "slow_growth": "⬆️",
-                "stable": "➡️",
-                "slow_decline": "⬇️",
-                "steady_decline": "📉",
-                "rapid_decline": "📉📉",
-                "insufficient_data": "❓"
+                "rapid_growth": "",
+                "steady_growth": "",
+                "slow_growth": "",
+                "stable": "",
+                "slow_decline": "",
+                "steady_decline": "",
+                "rapid_decline": "",
+                "insufficient_data": ""
             }
             
             # Format the trend analysis
             latest = max(snapshots, key=lambda x: x["timestamp"])
             current_members = latest["member_count"]
             
-            trend_content = f"""## 📊 Member Growth Analysis
+            trend_content = f"""##  Member Growth Analysis
 
 **Current Members:** {current_members:,}
 
-**Short-term Trend:** {trend_emoji.get(short_trend["trend"], "❓")} {short_trend["trend"].replace("_", " ").title()}
+**Short-term Trend:** {trend_emoji.get(short_trend["trend"], "")} {short_trend["trend"].replace("_", " ").title()}
 • Daily Change: **{short_trend["growth_rate_daily"]:.1f}** members/day
 • 7-Day Projection: **{short_trend["prediction_7_days"]:,}** members
 • Confidence: {short_trend["confidence"].title()}
 
-**Medium-term Trend:** {trend_emoji.get(medium_trend["trend"], "❓")} {medium_trend["trend"].replace("_", " ").title()}
+**Medium-term Trend:** {trend_emoji.get(medium_trend["trend"], "")} {medium_trend["trend"].replace("_", " ").title()}
 • Daily Change: **{medium_trend["growth_rate_daily"]:.1f}** members/day
 • 30-Day Projection: **{medium_trend["prediction_30_days"]:,}** members
 • Confidence: {medium_trend["confidence"].title()}
 
-**Long-term Trend:** {trend_emoji.get(long_trend["trend"], "❓")} {long_trend["trend"].replace("_", " ").title()}
+**Long-term Trend:** {trend_emoji.get(long_trend["trend"], "")} {long_trend["trend"].replace("_", " ").title()}
 • Over {long_trend["days_measured"]} days
 • Total Change: **{long_trend["growth_total"]:+,}** members
 
@@ -803,12 +838,12 @@ Usage: `<p>a timezone <zone>`""")
             await forwardEmbedMethod(
                 channel_id=ctx.channel.id,
                 content=trend_content,
-                title=f"📈 Growth Trend Analysis - {ctx.guild.name}",
+                title=f" Growth Trend Analysis - {ctx.guild.name}",
                 image=None
             )
         except Exception as e:
             print(f"Error generating trend analysis: {str(e)}", type_="ERROR")
-            await ctx.send(f"❌ Error generating trend analysis for {ctx.guild.name}. Please try again later.")
+            await ctx.send(f" Error generating trend analysis for {ctx.guild.name}. Please try again later.")
         finally:
             # Always restore private setting
             updateConfigData("private", current_private)
@@ -828,7 +863,7 @@ Usage: `<p>a timezone <zone>`""")
                 await forwardEmbedMethod(
                     channel_id=ctx.channel.id,
                     content="Not enough data for comparison. Please take at least 2 snapshots.",
-                    title=f"🔄 Server Comparison - {ctx.guild.name}",
+                    title=f" Server Comparison - {ctx.guild.name}",
                     image=None
                 )
                 return
@@ -861,24 +896,24 @@ Usage: `<p>a timezone <zone>`""")
             previous_date = format_time_in_timezone(previous_time, "%Y-%m-%d %H:%M")
             
             # Build comparison message
-            comparison = f"""## 🔄 Server Comparison
+            comparison = f"""##  Server Comparison
 
 **Time Period:** {days_diff:.1f} days
 **From:** {previous_date}
 **To:** {current_date}
 
-**👥 Member Changes**
+** Member Changes**
 • Before: **{previous["member_count"]:,}** members
 • Now: **{current["member_count"]:,}** members
 • Change: **{member_diff:+,}** members ({member_percent:+.2f}%)
 • Bots: **{current.get("bots", 0) - previous.get("bots", 0):+,}**
 
-**📝 Channel Changes**
+** Channel Changes**
 • Total: **{channel_diff:+,}** channels
 • Text: **{current.get("text_channels", 0) - previous.get("text_channels", 0):+,}**
 • Voice: **{current.get("voice_channels", 0) - previous.get("voice_channels", 0):+,}**
 
-**🎭 Role Changes**
+** Role Changes**
 • Total: **{role_diff:+,}** roles
 
 *Server comparison between two points in time*
@@ -887,12 +922,12 @@ Usage: `<p>a timezone <zone>`""")
             await forwardEmbedMethod(
                 channel_id=ctx.channel.id,
                 content=comparison,
-                title=f"🔄 Server Comparison - {ctx.guild.name}",
+                title=f" Server Comparison - {ctx.guild.name}",
                 image=None
             )
         except Exception as e:
             print(f"Error generating comparison: {str(e)}", type_="ERROR")
-            await ctx.send(f"❌ Error generating server comparison for {ctx.guild.name}. Please try again later.")
+            await ctx.send(f" Error generating server comparison for {ctx.guild.name}. Please try again later.")
         finally:
             # Always restore private setting
             updateConfigData("private", current_private)
@@ -904,7 +939,7 @@ Usage: `<p>a timezone <zone>`""")
         snapshots = data.get("snapshots", [])
         
         if not snapshots:
-            await ctx.send("❌ No analytics data available to export.")
+            await ctx.send(" No analytics data available to export.")
             return
             
         try:
@@ -940,7 +975,7 @@ Usage: `<p>a timezone <zone>`""")
             with open(export_path, "w") as f:
                 f.write(export_text)
                 
-            await ctx.send(f"""✅ **Analytics Data Export Complete**
+            await ctx.send(f""" **Analytics Data Export Complete**
 
 **File:** `{filename}`
 **Location:** `{export_path}`
@@ -951,7 +986,7 @@ Usage: `<p>a timezone <zone>`""")
             
         except Exception as e:
             print(f"Error exporting data: {str(e)}", type_="ERROR")
-            await ctx.send(f"❌ Error exporting analytics data. Please try again later.")
+            await ctx.send(f" Error exporting analytics data. Please try again later.")
 
     # Generate member change graph
     async def generate_member_graph(ctx):
@@ -970,7 +1005,7 @@ Usage: `<p>a timezone <zone>`""")
                 await forwardEmbedMethod(
                     channel_id=ctx.channel.id,
                     content="No analytics data available yet for this server.",
-                    title=f"📊 Member Count History - {ctx.guild.name}",
+                    title=f" Member Count History - {ctx.guild.name}",
                     image=None
                 )
                 return
@@ -1012,17 +1047,17 @@ Usage: `<p>a timezone <zone>`""")
                     
                     # Determine emoji based on change
                     if overall_change > 15:
-                        change_emoji = "🚀"
+                        change_emoji = ""
                     elif overall_change > 5:
-                        change_emoji = "📈"
+                        change_emoji = ""
                     elif overall_change > 0:
-                        change_emoji = "⬆️"
+                        change_emoji = ""
                     elif overall_change == 0:
-                        change_emoji = "➡️"
+                        change_emoji = ""
                     elif overall_change > -5:
-                        change_emoji = "⬇️"
+                        change_emoji = ""
                     else:
-                        change_emoji = "📉"
+                        change_emoji = ""
                         
                     graph_content += f"**Current Members:** {current_members:,} ({overall_change:+,}) {change_emoji}\n\n"
                 else:
@@ -1047,12 +1082,12 @@ Usage: `<p>a timezone <zone>`""")
                     change = current_count - next_snapshot["member_count"]
                     if change > 0:
                         change_str = f" (+{change})"
-                        trend = " 🚀" if change >= 20 else " 📈" if change >= 10 else " ⬆️"
+                        trend = " " if change >= 20 else " " if change >= 10 else " "
                     elif change < 0:
                         change_str = f" ({change})"
-                        trend = " 📉📉" if change <= -20 else " 📉" if change <= -10 else " ⬇️"
+                        trend = " " if change <= -20 else " " if change <= -10 else " "
                     else:
-                        trend = " ➡️"
+                        trend = " "
                 
                 # Create the line with more detail
                 if len(group) > 1:
@@ -1075,12 +1110,12 @@ Usage: `<p>a timezone <zone>`""")
             await forwardEmbedMethod(
                 channel_id=ctx.channel.id,
                 content=graph_content,
-                title=f"📊 Member Count History - {ctx.guild.name} 👥",
+                title=f" Member Count History - {ctx.guild.name} ",
                 image=None
             )
         except Exception as e:
             print(f"Error generating member graph: {str(e)}", type_="ERROR")
-            await ctx.send(f"❌ Error generating member graph for {ctx.guild.name}. Please try again later.")
+            await ctx.send(f" Error generating member graph for {ctx.guild.name}. Please try again later.")
         finally:
             # Always restore private setting
             updateConfigData("private", current_private)
