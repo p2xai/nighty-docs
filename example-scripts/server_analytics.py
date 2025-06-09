@@ -104,6 +104,8 @@ def server_analytics():
     import math
 
     # Constants
+    BASE_DIR = Path(getScriptsPath()) / "json" / "server_member_tracking"
+
     DEFAULT_AUTO_SNAPSHOT_INTERVAL_HOURS = 20
     DATA_RETENTION_DAYS = 90
     
