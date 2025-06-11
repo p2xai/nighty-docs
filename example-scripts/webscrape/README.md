@@ -22,9 +22,8 @@ Load the script in NightyScript and run:
 
 ## Puppeteer Screenshot
 
-Uses Node.js and Puppeteer to capture a screenshot of any webpage. The
-JavaScript code is embedded directly in the Python script, so you do not
-need to keep a separate `.js` file.
+Uses Node.js and Puppeteer to capture a screenshot of any webpage. The JavaScript code is embedded directly in the Python script, so you do not need to keep a separate `.js` file. Uses Node.js and Puppeteer to capture a screenshot of any webpage.
+
 
 ### Installation
 
