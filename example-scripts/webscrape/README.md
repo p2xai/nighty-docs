@@ -37,3 +37,4 @@ Load the script in NightyScript and run:
 ```
 <p>puppshot https://example.com
 ```
+
