@@ -22,6 +22,8 @@ def puppeteer_screenshot():
     - Install with: `npm install puppeteer`
     - The Node.js code is embedded in this script and written to a temporary
       file at runtime.
+    - If the screenshot fails, any output from the Node process will be
+      displayed to help debug problems.
     """
     import asyncio
     import discord
@@ -63,14 +65,22 @@ def puppeteer_screenshot():
         temp_js.write_text(JS_CODE)
         return temp_js
 
-    async def run_puppeteer(url: str, out_file: Path) -> bool:
+    async def run_puppeteer(url: str, out_file: Path) -> tuple[bool, str]:
+        """Run the temporary Node.js script and return success and output."""
         js_file = await write_js_temp()
         try:
             proc = await asyncio.create_subprocess_exec(
-                "node", str(js_file), url, str(out_file)
+                "node",
+                str(js_file),
+                url,
+                str(out_file),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
             )
-            await proc.communicate()
-            return proc.returncode == 0 and out_file.exists()
+            stdout, _ = await proc.communicate()
+            output = (stdout or b"").decode().strip()
+            success = proc.returncode == 0 and out_file.exists()
+            return success, output
         finally:
             try:
                 js_file.unlink()
@@ -85,9 +95,12 @@ def puppeteer_screenshot():
             url = "http://" + url
         temp_file = Path(os.getcwd()) / f"puppshot_{uuid.uuid4().hex}.png"
         status_msg = await ctx.send(f"Capturing screenshot for {url}...")
-        success = await run_puppeteer(url, temp_file)
+        success, output = await run_puppeteer(url, temp_file)
         if not success:
-            await status_msg.edit(content="Failed to capture screenshot.")
+            preview = (output[:200] + "...") if len(output) > 200 else output
+            message = "Failed to capture screenshot." if not preview else \
+                f"Failed to capture screenshot:\n```\n{preview}\n```"
+            await status_msg.edit(content=message)
             return
         file = discord.File(str(temp_file), filename="screenshot.png")
         await status_msg.delete()
