@@ -44,6 +44,18 @@ You may use objects like `discord.File` without importing them — NightyScript 
 * External Python packages (e.g. `pydub`, `numpy`, `matplotlib`) are not allowed, unless they are non-Python tools like Docker.
 * All dependencies must be documented inside the script's docstring.
 
+### 1.2.1 External Dependencies for Custom Scripts
+
+Custom scripts in this repository may use external dependencies including:
+- Python packages: `selenium`, `beautifulsoup4`, `requests`, `pandas`, etc.
+- Node.js tools: `puppeteer`, `playwright`, etc.
+- System tools: Docker, browser drivers, etc.
+
+Requirements:
+- All dependencies must be documented in the script's docstring
+- Include installation instructions (e.g., `pip install package-name`)
+- For Node.js dependencies, include npm/yarn install commands
+
 ### 1.3 Embed Limitation
 
 `discord.Embed` is not supported. Use `forwardEmbedMethod` to send embed-style messages in NightyScript.
