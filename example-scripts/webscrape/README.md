@@ -42,4 +42,3 @@ Load the script in NightyScript and run:
 
 If the screenshot fails, the command will display the captured Node.js output to
 help diagnose the issue.
-
