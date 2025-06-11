@@ -19,3 +19,21 @@ Load the script in NightyScript and run:
 ```
 <p>trending
 ```
+
+## Puppeteer Screenshot
+
+Uses Node.js and Puppeteer to capture a screenshot of any webpage.
+
+### Installation
+
+```
+npm install puppeteer
+```
+
+### Usage
+
+Load the script in NightyScript and run:
+
+```
+<p>puppshot https://example.com
+```
